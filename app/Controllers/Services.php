@@ -4,10 +4,13 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use CodeIgniter\I18n\Time;
+use CodeIgniter\RESTful\ResourceController;
+use CodeIgniter\API\ResponseTrait;
 
 class Services extends BaseController
 {
-
+    use ResponseTrait;
+    
     public function __construct()
     {
         date_default_timezone_set('Asia/Kolkata');
@@ -21,6 +24,12 @@ class Services extends BaseController
     public function index()
     {
         return view('unauthorized_access');
+    }
+
+    public function getUsers() {
+        $userModel = new UserModel;
+        $data['users'] = $userModel->getUsers('', 'usr_name', 0, 30);
+        return $this->respond($data);
     }
 
     public function checkUser()
