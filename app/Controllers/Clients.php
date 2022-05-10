@@ -33,11 +33,9 @@ class Clients extends BaseController
         $clientsModel = new ClientsModel;
         $filt = "";
         if (!empty($postdata->qry))
-        $filt .= "AND (client_name LIKE '%" . $postdata->qry . "%' OR client_address LIKE '%" . $postdata->qry . "%' OR client_email LIKE '%" .$postdata->qry . "%' OR client_mobile LIKE '%" . $postdata->qry . "%')";
-   
+            $filt .= "AND (client_name LIKE '%" . $postdata->qry . "%' OR client_address LIKE '%" . $postdata->qry . "%' OR client_email LIKE '%" . $postdata->qry . "%' OR client_mobile LIKE '%" . $postdata->qry . "%')";
+
         $data['clients'] = $clientsModel->getClients($filt, $postdata->sort, $postdata->pn, $postdata->ps);
         return $this->respond($data);
-        
     }
-  
 }
