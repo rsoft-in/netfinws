@@ -18,5 +18,4 @@ class ClientsModel extends Model
         return $result;
     }
 
-  
 }

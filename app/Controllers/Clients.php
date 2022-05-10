@@ -38,4 +38,32 @@ class Clients extends BaseController
         $data['clients'] = $clientsModel->getClients($filt, $postdata->sort, $postdata->pn, $postdata->ps);
         return $this->respond($data);
     }
+
+    public function addClient()
+    {
+        $post = $this->request->getPost('postdata');
+        $json = json_decode($post);
+        $clientsModel = new ClientsModel;
+        $data = [
+            'client_id' => $json->client_id,
+            'client_name' => $json->client_name,
+            'client_address' => $json->client_address,
+            'client_phone' => $json->client_phone,
+            'client_mobile' => $json->client_mobile,
+            'client_email' => $json->client_email,
+            'client_meta' => $json->client_meta,
+            'client_inactive' => $json->client_inactive,
+            'client_modified' => $json->client_modified
+        ];
+        $clientsModel->insert($data);
+        // $response = [
+        //     'status' => 201,
+        //     'error' => null,
+        //     'messages' => [
+        //         'success' => 'Employee created successfully'
+        //     ]
+        // ];
+        // return $this->respondCreated($response);
+        echo 'SUCCESS';
+    }
 }
