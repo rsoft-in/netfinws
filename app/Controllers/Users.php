@@ -5,10 +5,9 @@ namespace App\Controllers;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
-use Tests\Support\Entity\User;
-use Tests\Support\Models\UserModel;
+use App\Models\UserModel;
 
-class users extends BaseController
+class Users extends BaseController
 {
     use ResponseTrait;
     public function __construct()
