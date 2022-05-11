@@ -2,10 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Models\UserModel;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
-use App\Models\UserModel;
 
 class Users extends BaseController
 {
@@ -32,7 +32,7 @@ class Users extends BaseController
         $userModel = new UserModel();
         $filt = "";
         if (!empty($postdata->qry))
-            $filt .= "AND (usr_name LIKE '%" . $postdata->qry . "%' OR usr_displayname LIKE '%" . $postdata->qry . "%' )";
+            $filt .= " AND (usr_name LIKE '%" . $postdata->qry . "%' OR usr_displayname LIKE '%" . $postdata->qry . "%' )";
 
         $data['users'] = $userModel->getUsers($filt, $postdata->sort, $postdata->pn, $postdata->ps);
         return $this->respond($data);
@@ -51,7 +51,7 @@ class Users extends BaseController
             'usr_displayname' => $json->usr_displayname,
             'usr_level' => $json->usr_level,
             'usr_remarks' => $json->usr_remarks,
-            'usr_inactive' => $json->usr_inactive,          
+            'usr_inactive' => $json->usr_inactive,
             'usr_modified' => $today->toDateTimeString()
         ];
         $userModel->addUser($data);
