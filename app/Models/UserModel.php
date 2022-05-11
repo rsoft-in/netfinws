@@ -7,6 +7,7 @@ use CodeIgniter\Model;
 class UserModel extends Model
 {
     protected $table = 'users';
+    protected $primaryKey = 'usr_id';
 
     public function getUsers($filter, $sortBy, $pageNo, $pageSize)
     {
@@ -16,6 +17,18 @@ class UserModel extends Model
             ->limit($pageNo, $pageSize)
             ->get()->getResult();
         return $result;
+    }
+    public function addUser($data)
+    {
+        $this->builder()->insert($data);
+    }
+    public function updateUser($data)
+    {
+        $this->builder()->where('usr_id', $data['usr_id'])->update($data);
+    }
+    public function deleteUser($usr_id)
+    {
+        $this->builder()->where('usr_id', $usr_id)->delete();
     }
 
     public function getUserByUsername($usr_name)
