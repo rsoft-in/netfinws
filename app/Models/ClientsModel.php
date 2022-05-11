@@ -6,7 +6,9 @@ use CodeIgniter\Model;
 
 class ClientsModel extends Model
 {
+    
     protected $table = 'clients';
+    protected $primaryKey = 'client_id';
 
     public function getClients($filter, $sortBy, $pageNo, $pageSize)
     {
@@ -17,5 +19,12 @@ class ClientsModel extends Model
             ->get()->getResult();
         return $result;
     }
-
+    public function addClient($data)
+    {
+        $this->builder()->insert($data);
+    }
+    public function updateClient($data)
+    {
+        $this->builder()->update($data);
+    }
 }
