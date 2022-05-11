@@ -79,7 +79,7 @@ class Clients extends BaseController
         $clientsModel->updateClient($data);
         echo 'SUCCESS';
     }
-    public function delete($id = null)
+    public function deleteClient()
     {
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);

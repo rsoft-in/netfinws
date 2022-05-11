@@ -25,7 +25,7 @@ class ClientsModel extends Model
     }
     public function updateClient($data)
     {
-        $this->builder()->update($data);
+        $this->builder()->where('client_id', $data['client_id'])->update($data);
     }
     public function deleteClient($client_id)
     {
