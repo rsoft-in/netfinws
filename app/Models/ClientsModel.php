@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class ClientsModel extends Model
 {
-    
+
     protected $table = 'clients';
     protected $primaryKey = 'client_id';
 
@@ -26,5 +26,9 @@ class ClientsModel extends Model
     public function updateClient($data)
     {
         $this->builder()->update($data);
+    }
+    public function deleteClient($client_id)
+    {
+        $this->builder()->where('client_id', $client_id)->delete();
     }
 }

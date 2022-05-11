@@ -43,71 +43,48 @@ class Clients extends BaseController
     {
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
+        $today = new Time('now');
         $clientsModel = new ClientsModel;
         $data = [
             'client_id' => $json->client_id,
             'client_name' => $json->client_name,
-            'client_address' => $json->client_address, 
+            'client_address' => $json->client_address,
             'client_phone' => $json->client_phone,
             'client_mobile' => $json->client_mobile,
             'client_email' => $json->client_email,
             'client_meta' => $json->client_meta,
             'client_inactive' => $json->client_inactive,
-            'client_modified' => $json->client_modified
+            'client_modified' => $today->toDateTimeString()
         ];
         $clientsModel->addClient($data);
-        // $response = [
-        //     'status' => 201,
-        //     'error' => null,
-        //     'messages' => [
-        //         'success' => 'Employee created successfully'
-        //     ]
-        // ];
-        // return $this->respondCreated($response);
         echo 'SUCCESS';
     }
     public function updateClient()
     {
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
+        $today = new Time('now');
         $clientsModel = new ClientsModel;
         $data = [
             'client_id' => $json->client_id,
             'client_name' => $json->client_name,
-            'client_address' => $json->client_address, 
+            'client_address' => $json->client_address,
             'client_phone' => $json->client_phone,
             'client_mobile' => $json->client_mobile,
             'client_email' => $json->client_email,
             'client_meta' => $json->client_meta,
             'client_inactive' => $json->client_inactive,
-            'client_modified' => $json->client_modified
+            'client_modified' => $today->toDateTimeString()
         ];
-        $clientsModel->addClient($data);
-        // $response = [
-        //     'status' => 201,
-        //     'error' => null,
-        //     'messages' => [
-        //         'success' => 'Employee created successfully'
-        //     ]
-        // ];
-        // return $this->respondCreated($response);
+        $clientsModel->updateClient($data);
         echo 'SUCCESS';
     }
-    public function delete($id = null){
-        $model = new ClientsModel();
-        $data = $model->where('client_id', $id)->delete($id);
-        if($data){
-            $model->delete($id);
-            // $response = [
-            //     'status'   => 200,
-            //     'error'    => null,
-            //     'messages' => [
-            //         'success' => 'Employee successfully deleted'
-            //     ]
-            // ];
-            // return $this->respondDeleted($response);
-        }else{
-            return $this->failNotFound('No employee found');
-        }
+    public function delete($id = null)
+    {
+        $post = $this->request->getPost('postdata');
+        $json = json_decode($post);
+        $clientsModel = new ClientsModel;
+        $clientsModel->deleteClient($json->client_id);
+        echo 'SUCCESS';
     }
 }
