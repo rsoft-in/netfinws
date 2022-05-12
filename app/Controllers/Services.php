@@ -48,7 +48,7 @@ class Services extends BaseController
                 'usr_level' => 5,
                 'usr_remarks' => 'Administrator',
                 'usr_modified' => $today->toDateTimeString(),
-                'usr_inactive' => 0
+                'usr_inactive' => '0'
             );
             echo json_encode($dataArray);
         } else {
