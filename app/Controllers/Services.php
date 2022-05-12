@@ -45,7 +45,7 @@ class Services extends BaseController
                 'usr_client_id' => 'super-admin',
                 'usr_name' => $postdata->username,
                 'usr_displayname' => 'Admin',
-                'usr_level' => 5,
+                'usr_level' => '5',
                 'usr_remarks' => 'Administrator',
                 'usr_modified' => $today->toDateTimeString(),
                 'usr_inactive' => '0'
