@@ -31,6 +31,12 @@ class Users extends BaseController
         $postdata = json_decode($post);
         $userModel = new UserModel();
         $filt = "";
+        if (empty($postdata->cid))
+            return;
+        else
+            $filt .= " AND (usr_client_id = '" . $postdata->cid . "')";
+
+
         if (!empty($postdata->qry))
             $filt .= " AND (usr_name LIKE '%" . $postdata->qry . "%' OR usr_displayname LIKE '%" . $postdata->qry . "%' )";
 
