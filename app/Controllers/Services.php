@@ -37,13 +37,12 @@ class Services extends BaseController
         $post = $this->request->getPost('postdata');
         $postdata = json_decode($post);
         $today = new Time('now');
-
-        $encrypter = service('encrypter');
         if ($postdata->username == 'super-admin' && $postdata->password == 'Elia1092') {
             $dataArray = array(
                 'usr_id' => $postdata->username,
                 'usr_client_id' => 'super-admin',
                 'usr_name' => $postdata->username,
+                'usr_pwd' => '',
                 'usr_displayname' => 'Admin',
                 'usr_level' => '5',
                 'usr_remarks' => 'Administrator',
@@ -56,21 +55,18 @@ class Services extends BaseController
             $users = $userModel->getUserByUsername($postdata->username);
             if (sizeof($users) > 0) {
                 $user = $users[0];
-                if ($postdata->password == $encrypter->decrypt($user->usr_pwd)) {
-                    $dataArray = array(
-                        'usr_id' => $user->usr_id,
-                        'usr_client_id' => $user->usr_client_id,
-                        'usr_name' => $user->usr_name,
-                        'usr_displayname' => $user->usr_displayname,
-                        'usr_level' => '0',
-                        'usr_remarks' => $user->usr_remarks,
-                        'usr_modified' => $today->toDateTimeString(),
-                        'usr_inactive' => $user->usr_inactive
-                    );
-                    echo json_encode($dataArray);
-                } else {
-                    echo 'FAILED: INCORRECT PASSWORD';
-                }
+                $dataArray = array(
+                    'usr_id' => $user->usr_id,
+                    'usr_client_id' => $user->usr_client_id,
+                    'usr_name' => $user->usr_name,
+                    'usr_pwd' => $user->usr_pwd,
+                    'usr_displayname' => $user->usr_displayname,
+                    'usr_level' => '0',
+                    'usr_remarks' => $user->usr_remarks,
+                    'usr_modified' => $today->toDateTimeString(),
+                    'usr_inactive' => $user->usr_inactive
+                );
+                echo json_encode($dataArray);
             } else {
                 echo 'FAILED: INCORRECT USERNAME';
             }
