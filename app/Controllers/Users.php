@@ -30,6 +30,7 @@ class Users extends BaseController
         $post = $this->request->getPost('postdata');
         $postdata = json_decode($post);
         $userModel = new UserModel();
+        
         $filt = "";
         if (empty($postdata->cid))
             return;
@@ -50,10 +51,12 @@ class Users extends BaseController
         $json = json_decode($post);
         $today = new Time('now');
         $userModel = new UserModel();
+        $encrypter = service('encrypter');
         $data = [
             'usr_id' => $json->usr_id,
             'usr_client_id' => $json->usr_client_id,
             'usr_name' => $json->usr_name,
+            'usr_pwd' => $encrypter->encrypt($json->usr_pwd),
             'usr_displayname' => $json->usr_displayname,
             'usr_level' => $json->usr_level,
             'usr_remarks' => $json->usr_remarks,
@@ -69,10 +72,12 @@ class Users extends BaseController
         $json = json_decode($post);
         $today = new Time('now');
         $userModel = new UserModel;
+        $encrypter = service('encrypter');
         $data = [
             'usr_id' => $json->usr_id,
             'usr_client_id' => $json->usr_client_id,
-            'usr_name' => $json->usr_name,
+            'usr_name' => $encrypter->encrypt($json->usr_name),
+            'usr_pwd' => $json->usr_pwd,
             'usr_displayname' => $json->usr_displayname,
             'usr_level' => $json->usr_level,
             'usr_remarks' => $json->usr_remarks,

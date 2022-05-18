@@ -19,6 +19,13 @@ class AccountsModel extends Model
             ->get()->getResult();
         return $result;
     }
+    public function getAccountByName($acnt_client_id, $acnt_name)
+    {
+        $result = $this->builder()->select('*')
+            ->where(" (acnt_client_id = '" . $acnt_client_id . "') AND (acnt_name = '" . $acnt_name . "') AND (acnt_isdefault = 1)")
+            ->get()->getResult();
+        return $result;
+    }
     public function addAccount($data)
     {
         $this->builder()->insert($data);
