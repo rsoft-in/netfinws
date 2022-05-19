@@ -4,10 +4,11 @@ namespace App\Controllers;
 
 use App\Models\AccountsModel;
 use App\Models\TransactionsModel;
+use App\Libraries\Utility;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
-
+use Utility as GlobalUtility;
 
 class Transactions extends BaseController
 {
@@ -33,9 +34,11 @@ class Transactions extends BaseController
         $postdata = json_decode($post);
         $transactionsModel = new TransactionsModel();
         $accountsModel = new AccountsModel();
+        $utility = new Utility();
         $account_name = "";
         $account_id = "";
         $group_id = "";
+        $today = new Time('now');
         switch ($postdata->book) {
             case 'CH':
                 $account_name = "Cash Account";
@@ -59,14 +62,32 @@ class Transactions extends BaseController
                 break;
         }
 
-        $account = $accountsModel->getAccountByName($postdata->cid, $account_name);
-        var_dump($account_name);
-        return;
+        $accounts = $accountsModel->getAccountByName($postdata->cid, $account_name);
+        if (sizeof($accounts) > 0) {
+            $account = $accounts[0];
+            $account_id = $account->acnt_id;
+        } else {
+            $account_id = $utility->guid();
+            $data = [
+                'acnt_id' => $account_id,
+                'acnt_name' => $account_name,
+                'acnt_ag_id' => $group_id,
+                'acnt_client_id' => $postdata->cid,
+                'acnt_opbal' => 0,
+                'acnt_clbal' => 0,
+                'acnt_inactive' => 0,
+                'acnt_isdefault' => 1,
+                'acnt_remarks' => 'Default',
+                'acnt_modified' => $today->toDateTimeString()
+            ];
+            $accountsModel->addAccount($data);
+        }
 
         $filt = "";
         if (!empty($postdata->qry))
             $filt .= "AND (txn_date LIKE '%" . $postdata->qry . "%')";
-        $data['transactions'] = $transactionsModel->getTransaction($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        $data['transactions'] = $transactionsModel->getTransaction($account_id, $filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        var_dump($account_id);
         return $this->respond($data);
     }
 

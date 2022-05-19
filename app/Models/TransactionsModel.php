@@ -12,17 +12,20 @@ class TransactionsModel extends Model
 
     public function getTransaction($acnt_id, $filter, $pageNo, $pageSize)
     {
-        $result = $this->builder()->select("SELECT transactions.*, acnt_name, 'DR' as etype 
-        FROM transactions
-        INNER JOIN accounts ON accounts.acnt_id = transactions.txn_acnt_id_cr
-        WHERE (txn_acnt_id_dr = '" . $acnt_id . "') " . $filter . "
-            UNION
-            SELECT transactions.*, acnt_name, 'CR' as etype 
-                FROM transactions
-                INNER JOIN accounts ON accounts.acnt_id = transactions.txn_acnt_id_dr
-                WHERE (txn_acnt_id_cr = '" . $acnt_id . "') " . $filter . "
-            ORDER BY txn_date LIMIT " . $pageNo . ", " . $pageSize)
+        $query = "SELECT transactions.*, accounts.acnt_name, 'DR' as etype 
+                        FROM transactions
+                        INNER JOIN accounts ON accounts.acnt_id = transactions.txn_acnt_id_cr
+                        WHERE (txn_acnt_id_dr = '" . $acnt_id . "') " . $filter . "
+                    UNION
+                    SELECT transactions.*, acnt_name, 'CR' as etype 
+                        FROM transactions
+                        INNER JOIN accounts ON accounts.acnt_id = transactions.txn_acnt_id_dr
+                        WHERE (txn_acnt_id_cr = '" . $acnt_id . "') " . $filter . "
+                    ORDER BY txn_date LIMIT " . $pageNo . ", " . $pageSize;
+        return;
+        $result = $this->builder()->select($query)
             ->get()->getResult();
+
         return $result;
     }
     public function addTransaction($data)
