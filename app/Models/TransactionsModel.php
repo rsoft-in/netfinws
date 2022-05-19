@@ -22,7 +22,8 @@ class TransactionsModel extends Model
 
         return $result;
     }
-    public function getTransactionsCount($acnt_id, $filter) {
+    public function getTransactionsCount($acnt_id, $filter)
+    {
         $result = $this->builder()->select("transactions.*")
             ->join('accounts acnt_dr', 'acnt_dr.acnt_id = transactions.txn_acnt_id_dr', 'inner')
             ->join('accounts acnt_cr', 'acnt_cr.acnt_id = transactions.txn_acnt_id_cr', 'inner')
@@ -30,6 +31,18 @@ class TransactionsModel extends Model
             ->orderBy('txn_date')
             ->countAllResults();
 
+        return $result;
+    }
+    public function getOpeningTotals($acnt_id, $fdate) {
+        $result = $this->builder()->select('SUM(CASE WHEN txn_acnt_id_dr = "' . $acnt_id . '" THEN txn_amount_dr ELSE 0 END) AS sum_amount_dr, SUM(CASE WHEN txn_acnt_id_cr = "' . $acnt_id . '" THEN txn_amount_cr ELSE 0 END) AS sum_amount_cr', false)
+            ->where("(txn_acnt_id_dr = '" . $acnt_id . "' OR txn_acnt_id_cr = '" . $acnt_id . "') AND txn_date < '" . $fdate . "'")
+            ->get()->getResult();
+        return $result;
+    }
+    public function getClosingTotals($acnt_id, $tdate) {
+        $result = $this->builder()->select('SUM(CASE WHEN txn_acnt_id_dr = "' . $acnt_id . '" THEN txn_amount_dr ELSE 0 END) AS sum_amount_dr, SUM(CASE WHEN txn_acnt_id_cr = "' . $acnt_id . '" THEN txn_amount_cr ELSE 0 END) AS sum_amount_cr', false)
+            ->where("(txn_acnt_id_dr = '" . $acnt_id . "' OR txn_acnt_id_cr = '" . $acnt_id . "') AND txn_date <= '" . $tdate . "'")
+            ->get()->getResult();
         return $result;
     }
     public function addTransaction($data)

@@ -37,6 +37,7 @@ class Transactions extends BaseController
         $utility = new Utility();
         $account_name = "";
         $account_id = "";
+        $account_op_balance = 0;
         $group_id = "";
         $today = new Time('now');
         switch ($postdata->book) {
@@ -66,6 +67,7 @@ class Transactions extends BaseController
         if (sizeof($accounts) > 0) {
             $account = $accounts[0];
             $account_id = $account->acnt_id;
+            $account_op_balance = $account->acnt_opbal;
         } else {
             $account_id = $utility->guid();
             $data = [
@@ -91,6 +93,9 @@ class Transactions extends BaseController
 
         $data['transactions'] = $transactionsModel->getTransaction($account_id, $filt, $postdata->ps, $postdata->pn * $postdata->ps);
         $data['records'] = $transactionsModel->getTransactionsCount($account_id, $filt);
+        $data['op_balance'] = $account_op_balance;
+        $data['op_totals'] = $transactionsModel->getOpeningTotals($account_id, $postdata->fdate);
+        $data['cl_totals'] = $transactionsModel->getClosingTotals($account_id, $postdata->tdate);
         return $this->respond($data);
     }
 
