@@ -18,6 +18,13 @@ class UserModel extends Model
             ->get()->getResult();
         return $result;
     }
+    public function getUsersCount($filter)
+    {
+        $result = $this->builder()->select('users.*')
+            ->where('(1=1) ' . $filter)           
+            ->countAllResults();
+        return $result;
+    }
     public function addUser($data)
     {
         $this->builder()->insert($data);

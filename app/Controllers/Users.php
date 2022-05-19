@@ -41,7 +41,8 @@ class Users extends BaseController
         if (!empty($postdata->qry))
             $filt .= " AND (usr_name LIKE '%" . $postdata->qry . "%' OR usr_displayname LIKE '%" . $postdata->qry . "%' )";
 
-        $data['users'] = $userModel->getUsers($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+            $data['users'] = $userModel->getUsers($filt, $postdata->sort, $postdata->ps, $postdata->pn*$postdata->ps);
+            $data['records'] = $userModel->getUsersCount($filt);
         return $this->respond($data);
     }
 
