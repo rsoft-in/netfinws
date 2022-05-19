@@ -34,7 +34,8 @@ class AccountGroups extends BaseController
         $filt = "";
         if (!empty($postdata->qry))
             $filt .= "AND (ag_name LIKE '%" . $postdata->qry . "%' OR ag_type LIKE '%" . $postdata->qry . "%')";
-        $data['accountgroups'] = $accountGroupsModel->getAccountGrp($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        $data['accountgroups'] = $accountGroupsModel->getAccountGrp($filt, $postdata->sort, $postdata->pn*$postdata->ps, $postdata->ps);
+        $data['records'] = $accountGroupsModel->getAccountGrpCount($filt);
         return $this->respond($data);
     }
 

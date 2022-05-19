@@ -19,6 +19,14 @@ class AccountGroupsModel extends Model
             ->get()->getResult();
         return $result;
     }
+    public function getAccountGrpCount($filter)
+    {
+        $result = $this->builder()->select('accountgroups.*')
+            ->where('(1=1) ' . $filter)           
+            ->countAllResults();
+        return $result;
+    }
+
     public function addAccountGrp($data)
     {
         $this->builder()->insert($data);

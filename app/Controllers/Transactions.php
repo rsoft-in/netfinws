@@ -86,7 +86,7 @@ class Transactions extends BaseController
         $filt = "";
         if (!empty($postdata->qry))
             $filt .= "AND (txn_date LIKE '%" . $postdata->qry . "%')";
-        $data['transactions'] = $transactionsModel->getTransaction($account_id, $filt, $postdata->pn, $postdata->ps);
+        $data['transactions'] = $transactionsModel->getTransaction($account_id, $filt, $postdata->pn*$postdata->ps, $postdata->ps);
         $data['records'] = $transactionsModel->getTransactionsCount($account_id, $filt);
         return $this->respond($data);
     }
