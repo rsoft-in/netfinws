@@ -34,8 +34,8 @@ class Accounts extends BaseController
         $filt = "";
         if (!empty($postdata->qry))
             $filt .= "AND (acnt_name LIKE '%" . $postdata->qry . "%' OR acnt_opbal LIKE '%" . $postdata->qry . "%')";
-
-        $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+            $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, $postdata->ps, $postdata->pn*$postdata->ps);
+            $data['records'] = $accountsModel->getAccountByCount($filt);
         return $this->respond($data);
     }
 

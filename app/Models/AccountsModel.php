@@ -26,6 +26,13 @@ class AccountsModel extends Model
             ->get()->getResult();
         return $result;
     }
+    public function getAccountByCount($filter)
+    {
+        $result = $this->builder()->select('accounts.*')
+            ->where('(1=1) ' . $filter)           
+            ->countAllResults();
+        return $result;
+    }
     public function addAccount($data)
     {
         $this->builder()->insert($data);
