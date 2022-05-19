@@ -19,6 +19,13 @@ class ClientsModel extends Model
             ->get()->getResult();
         return $result;
     }
+    public function getClientsByCount($filter)
+    {
+        $result = $this->builder()->select('clients.*')
+            ->where('(1=1) ' . $filter)           
+            ->countAllResults();
+        return $result;
+    }
     public function addClient($data)
     {
         $this->builder()->insert($data);
