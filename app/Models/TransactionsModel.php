@@ -12,19 +12,23 @@ class TransactionsModel extends Model
 
     public function getTransaction($acnt_id, $filter, $pageNo, $pageSize)
     {
-        $query = "SELECT transactions.*, accounts.acnt_name, 'DR' as etype 
-                        FROM transactions
-                        INNER JOIN accounts ON accounts.acnt_id = transactions.txn_acnt_id_cr
-                        WHERE (txn_acnt_id_dr = '" . $acnt_id . "') " . $filter . "
-                    UNION
-                    SELECT transactions.*, acnt_name, 'CR' as etype 
-                        FROM transactions
-                        INNER JOIN accounts ON accounts.acnt_id = transactions.txn_acnt_id_dr
-                        WHERE (txn_acnt_id_cr = '" . $acnt_id . "') " . $filter . "
-                    ORDER BY txn_date LIMIT " . $pageNo . ", " . $pageSize;
-        return;
-        $result = $this->builder()->select($query)
+        $result = $this->builder()->select("transactions.*, acnt_dr.acnt_name as acnt_name_dr, acnt_cr.acnt_name as acnt_name_cr, if(acnt_dr.acnt_id = '" . $acnt_id . "', 'DR', 'CR') as etype")
+            ->join('accounts acnt_dr', 'acnt_dr.acnt_id = transactions.txn_acnt_id_dr', 'inner')
+            ->join('accounts acnt_cr', 'acnt_cr.acnt_id = transactions.txn_acnt_id_cr', 'inner')
+            ->where("(txn_acnt_id_dr = '" . $acnt_id . "') OR (txn_acnt_id_cr = '" . $acnt_id . "') " . $filter)
+            ->orderBy('txn_date')
+            ->limit($pageNo, $pageSize)
             ->get()->getResult();
+
+        return $result;
+    }
+    public function getTransactionsCount($acnt_id, $filter) {
+        $result = $this->builder()->select("transactions.*, acnt_dr.acnt_name as acnt_name_dr, acnt_cr.acnt_name as acnt_name_cr, if(acnt_dr.acnt_id = '" . $acnt_id . "', 'DR', 'CR') as etype")
+            ->join('accounts acnt_dr', 'acnt_dr.acnt_id = transactions.txn_acnt_id_dr', 'inner')
+            ->join('accounts acnt_cr', 'acnt_cr.acnt_id = transactions.txn_acnt_id_cr', 'inner')
+            ->where("(txn_acnt_id_dr = '" . $acnt_id . "') OR (txn_acnt_id_cr = '" . $acnt_id . "') " . $filter)
+            ->orderBy('txn_date')
+            ->countAllResults();
 
         return $result;
     }
