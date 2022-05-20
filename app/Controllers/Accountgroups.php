@@ -32,6 +32,12 @@ class AccountGroups extends BaseController
         $postdata = json_decode($post);
         $accountGroupsModel = new AccountGroupsModel();
         $filt = "";
+
+        if (isset($postdata->cid))
+            $filt .= " AND (ag_client_id = '" . $postdata->cifd . "')";
+        else
+            $filt .= " AND (ag_isdefault = 1)";
+
         if (!empty($postdata->qry))
             $filt .= "AND (ag_name LIKE '%" . $postdata->qry . "%' OR ag_type LIKE '%" . $postdata->qry . "%')";
         $data['accountgroups'] = $accountGroupsModel->getAccountGrp($filt, $postdata->sort, $postdata->ps, $postdata->pn*$postdata->ps);
