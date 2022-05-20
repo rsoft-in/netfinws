@@ -34,7 +34,7 @@ class AccountGroups extends BaseController
         $filt = "";
 
         if (isset($postdata->cid))
-            $filt .= " AND (ag_client_id = '" . $postdata->cifd . "')";
+            $filt .= " AND (ag_client_id = '" . $postdata->cid . "')";
         else
             $filt .= " AND (ag_isdefault = 1)";
 
