@@ -32,6 +32,12 @@ class Accounts extends BaseController
         $postdata = json_decode($post);
         $accountsModel = new AccountsModel();
         $filt = "";
+        
+        if (isset($postdata->cid))
+            $filt .= " AND (acnt_client_id = '" . $postdata->cid . "')";
+        else
+            $filt .= " AND (acnt_isdefault = 1)";
+
         if (!empty($postdata->qry))
             $filt .= "AND (acnt_name LIKE '%" . $postdata->qry . "%' OR acnt_opbal LIKE '%" . $postdata->qry . "%')";
             $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, $postdata->ps, $postdata->pn*$postdata->ps);
