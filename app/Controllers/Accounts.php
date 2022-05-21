@@ -60,6 +60,7 @@ class Accounts extends BaseController
             'acnt_clbal' => $json->acnt_clbal,
             'acnt_inactive' => $json->acnt_inactive,
             'acnt_isdefault' => $json->acnt_isdefault,
+            'acnt_book_type' => $json->acnt_book_type,
             'acnt_remarks' => $json->acnt_remarks,
             'acnt_modified' => $today->toDateTimeString()
         ];
@@ -81,6 +82,7 @@ class Accounts extends BaseController
             'acnt_clbal' => $json->acnt_clbal,
             'acnt_inactive' => $json->acnt_inactive,
             'acnt_isdefault' => $json->acnt_isdefault,
+            'acnt_book_type' => $json->acnt_book_type,
             'acnt_remarks' => $json->acnt_remarks,
             'acnt_modified' => $today->toDateTimeString()
         ];
