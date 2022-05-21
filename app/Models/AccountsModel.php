@@ -19,6 +19,13 @@ class AccountsModel extends Model
             ->get()->getResult();
         return $result;
     }
+    public function getAccountById($acnt_id, $acnt_client_id)
+    {
+        $result = $this->builder()->select('*')
+            ->where(" (acnt_id = '" . $acnt_id . "') AND (acnt_client_id = '" . $acnt_client_id . "')")
+            ->get()->getResult();
+        return $result;
+    }
     public function getAccountByName($acnt_client_id, $acnt_name)
     {
         $result = $this->builder()->select('*')

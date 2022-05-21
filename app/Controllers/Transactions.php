@@ -2,13 +2,11 @@
 
 namespace App\Controllers;
 
-use App\Models\AccountsModel;
 use App\Models\TransactionsModel;
-use App\Libraries\Utility;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
-use Utility as GlobalUtility;
+
 
 class Transactions extends BaseController
 {
@@ -33,58 +31,6 @@ class Transactions extends BaseController
         $post = $this->request->getPost('postdata');
         $postdata = json_decode($post);
         $transactionsModel = new TransactionsModel();
-        $accountsModel = new AccountsModel();
-        $utility = new Utility();
-        $account_name = "";
-        $account_id = "";
-        $account_op_balance = 0;
-        $group_id = "";
-        $today = new Time('now');
-        switch ($postdata->book) {
-            case 'CH':
-                $account_name = "Cash Account";
-                $group_id = "E4C13199-7492-0EFE-BC5C-41B82047623E";
-                break;
-            case 'BK':
-                $account_name = "Bank Account";
-                $group_id = "E4C13199-7492-0EFE-BC5C-41B82047623E";
-                break;
-            case 'SA':
-                $account_name = "Sales Account";
-                $group_id = "C1EF16E9-F3DA-69A0-9C29-E23A5E1A96A8";
-                break;
-            case 'PU':
-                $account_name = "Purchase Account";
-                $group_id = "8FB61DF9-9086-5DBD-BD33-3F3A4068829C";
-                break;
-            default:
-                $account_name = "Cash Account";
-                $group_id = "E4C13199-7492-0EFE-BC5C-41B82047623E";
-                break;
-        }
-
-        $accounts = $accountsModel->getAccountByName($postdata->cid, $account_name);
-        if (sizeof($accounts) > 0) {
-            $account = $accounts[0];
-            $account_id = $account->acnt_id;
-            $account_op_balance = $account->acnt_opbal;
-        } else {
-            $account_id = $utility->guid();
-            $data = [
-                'acnt_id' => $account_id,
-                'acnt_name' => $account_name,
-                'acnt_ag_id' => $group_id,
-                'acnt_client_id' => $postdata->cid,
-                'acnt_opbal' => 0,
-                'acnt_clbal' => 0,
-                'acnt_inactive' => 0,
-                'acnt_isdefault' => 1,
-                'acnt_book_type' => $postdata->cid,
-                'acnt_remarks' => 'Default',
-                'acnt_modified' => $today->toDateTimeString()
-            ];
-            $accountsModel->addAccount($data);
-        }
 
         $filt = "";
         if (!empty($postdata->fdate))
@@ -92,12 +38,10 @@ class Transactions extends BaseController
         if (!empty($postdata->tdate))
             $filt .= " AND (txn_date <= '" . $postdata->tdate . "')";
 
-        $data['transactions'] = $transactionsModel->getTransaction($account_id, $filt, $postdata->ps, $postdata->pn * $postdata->ps);
-        $data['records'] = $transactionsModel->getTransactionsCount($account_id, $filt);
-        $data['op_balance'] = $account_op_balance;
-        $data['op_totals'] = $transactionsModel->getOpeningTotals($account_id, $postdata->fdate);
-        $data['cl_totals'] = $transactionsModel->getClosingTotals($account_id, $postdata->tdate);
-        $data['account_id'] = $account_id;
+        $data['transactions'] = $transactionsModel->getTransaction($postdata->acnt_id, $filt, $postdata->ps, $postdata->pn * $postdata->ps);
+        $data['records'] = $transactionsModel->getTransactionsCount($postdata->acnt_id, $filt);
+        $data['op_totals'] = $transactionsModel->getOpeningTotals($postdata->acnt_id, $postdata->fdate);
+        $data['cl_totals'] = $transactionsModel->getClosingTotals($postdata->acnt_id, $postdata->tdate);
         return $this->respond($data);
     }
 
@@ -124,6 +68,7 @@ class Transactions extends BaseController
         $transactionsModel->addTransaction($data);
         echo 'SUCCESS';
     }
+
     public function updateTransaction()
     {
         $post = $this->request->getPost('postdata');
@@ -147,6 +92,7 @@ class Transactions extends BaseController
         $transactionsModel->updateTransaction($data);
         echo 'SUCCESS';
     }
+
     public function deleteTransaction()
     {
         $post = $this->request->getPost('postdata');
