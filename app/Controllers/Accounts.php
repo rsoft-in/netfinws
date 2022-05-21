@@ -60,7 +60,7 @@ class Accounts extends BaseController
         }
         $filt .= " AND acnt_book_type IN ('CH', 'BK')";
 
-        $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, 100, 0);
+        $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, $postdata->ps, $postdata->pn*$postdata->ps);
         return $this->respond($data);
     }
 
