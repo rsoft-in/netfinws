@@ -45,6 +45,25 @@ class Accounts extends BaseController
         return $this->respond($data);
     }
 
+    public function getAccountsCashBank()
+    {
+        $post = $this->request->getPost('postdata');
+        $postdata = json_decode($post);
+        $accountsModel = new AccountsModel();
+        $filt = "";
+        
+        if (isset($postdata->cid))
+            $filt .= " AND (acnt_client_id = '" . $postdata->cid . "')";
+        else {
+            echo 'INVALID REQUEST';
+            return;
+        }
+        $filt .= " AND acnt_book_type IN ('CH', 'BK')";
+
+        $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, 100, 0);
+        return $this->respond($data);
+    }
+
     public function addAccount()
     {
         $post = $this->request->getPost('postdata');

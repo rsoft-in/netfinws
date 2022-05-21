@@ -79,6 +79,7 @@ class Transactions extends BaseController
                 'acnt_clbal' => 0,
                 'acnt_inactive' => 0,
                 'acnt_isdefault' => 1,
+                'acnt_book_type' => $postdata->cid,
                 'acnt_remarks' => 'Default',
                 'acnt_modified' => $today->toDateTimeString()
             ];
