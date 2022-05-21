@@ -96,6 +96,7 @@ class Transactions extends BaseController
         $data['op_balance'] = $account_op_balance;
         $data['op_totals'] = $transactionsModel->getOpeningTotals($account_id, $postdata->fdate);
         $data['cl_totals'] = $transactionsModel->getClosingTotals($account_id, $postdata->tdate);
+        $data['account_id'] = $account_id;
         return $this->respond($data);
     }
 
