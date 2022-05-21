@@ -33,6 +33,9 @@ class Transactions extends BaseController
         $transactionsModel = new TransactionsModel();
 
         $filt = "";
+        if (!isset($postdata->cid)) {
+            return $this->respond('INVALID REQUEST');
+        }
         if (!empty($postdata->fdate))
             $filt .= " AND (txn_date >= '" . $postdata->fdate . "')";
         if (!empty($postdata->tdate))
