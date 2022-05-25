@@ -22,10 +22,19 @@ class ClientsModel extends Model
     public function getClientsByCount($filter)
     {
         $result = $this->builder()->select('clients.*')
-            ->where('(1=1) ' . $filter)           
+            ->where('(1=1) ' . $filter)
             ->countAllResults();
         return $result;
     }
+
+    public function getClientById($client_id)
+    {
+        $result = $this->builder()->select('*')
+        ->where('client_id', $client_id)    
+        ->get()->getResult();
+        return $result;
+    }
+
     public function addClient($data)
     {
         $this->builder()->insert($data);
@@ -34,8 +43,14 @@ class ClientsModel extends Model
     {
         $this->builder()->where('client_id', $data['client_id'])->update($data);
     }
+    
     public function deleteClient($client_id)
     {
         $this->builder()->where('client_id', $client_id)->delete();
+    }
+
+    public function updateClientChange($data)
+    {
+        $this->builder()->where('client_id', $data['client_id'])->update($data);
     }
 }
