@@ -10,7 +10,7 @@ use CodeIgniter\API\ResponseTrait;
 class Services extends BaseController
 {
     use ResponseTrait;
-    
+
     public function __construct()
     {
         date_default_timezone_set('Asia/Kolkata');
@@ -26,7 +26,8 @@ class Services extends BaseController
         return view('unauthorized_access');
     }
 
-    public function getUsers() {
+    public function getUsers()
+    {
         $userModel = new UserModel;
         $data['users'] = $userModel->getUsers('', 'usr_name', 0, 30);
         return $this->respond($data);
@@ -71,5 +72,13 @@ class Services extends BaseController
                 echo 'FAILED: INCORRECT USERNAME';
             }
         }
+    }
+
+    public function test()
+    {
+        $encrypter = \Config\Services::encrypter();
+        $ciphertext = $encrypter->encrypt('Lucky913x');
+        echo $ciphertext;
+        echo $encrypter->decrypt($ciphertext);
     }
 }
