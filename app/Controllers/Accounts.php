@@ -11,15 +11,6 @@ use CodeIgniter\API\ResponseTrait;
 class Accounts extends BaseController
 {
     use ResponseTrait;
-    public function __construct()
-    {
-        date_default_timezone_set('Asia/Kolkata');
-        if (isset($_SERVER['HTTP_ORIGIN'])) {
-            header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-            header('Access-Control-Allow-Credentials: true');
-            header('Access-Control-Max-Age: 86400');    // cache for 1 day
-        }
-    }
 
     public function index()
     {
@@ -31,11 +22,16 @@ class Accounts extends BaseController
         $post = $this->request->getPost('postdata');
         $postdata = json_decode($post);
         $accountsModel = new AccountsModel();
-        $filt = "";
-        if (!empty($postdata->qry))
-            $filt .= "AND (acnt_name LIKE '%" . $postdata->qry . "%' OR acnt_opbal LIKE '%" . $postdata->qry . "%')";
 
-        $data['accounts'] = $accountsModel->getAccounts($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        $builder = $accountsModel->builder()->select('*');
+        if (!empty($postdata->qry)) {
+            $builder->like('acnt_name', $postdata->qry);
+        }
+        $data['accounts'] = $builder
+            ->orderBy($postdata->sort)
+            ->limit($postdata->pn, $postdata->ps)
+            ->get()->getResult();
+        $data['records'] = $builder->countAllResults();
         return $this->respond($data);
     }
 
@@ -57,9 +53,13 @@ class Accounts extends BaseController
             'acnt_remarks' => $json->acnt_remarks,
             'acnt_modified' => $today->toDateTimeString()
         ];
-        $accountsModel->addAccount($data);
-        echo 'SUCCESS';
+        $accountsModel->builder()->insert($data);
+        if ($accountsModel->db->affectedRows() > 0)
+            return $this->respond('SUCCESS');
+        else
+            return $this->respond($accountsModel->db->error());
     }
+    
     public function updateAccount()
     {
         $post = $this->request->getPost('postdata');
@@ -78,15 +78,22 @@ class Accounts extends BaseController
             'acnt_remarks' => $json->acnt_remarks,
             'acnt_modified' => $today->toDateTimeString()
         ];
-        $accountsModel->updateAccount($data);
-        echo 'SUCCESS';
+        $accountsModel->builder()->where('acnt_id', $json->acnt_id)->update($data);
+        if ($accountsModel->db->affectedRows() > 0)
+            return $this->respond('SUCCESS');
+        else
+            return $this->respond($accountsModel->db->error());
     }
+
     public function deleteAccount()
     {
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
         $accountsModel = new AccountsModel;
-        $accountsModel->deleteAccount($json->acnt_id);
-        echo 'SUCCESS';
+        $accountsModel->builder()->where('acnt_id', $json->acnt_id)->delete();
+        if ($accountsModel->db->affectedRows() > 0)
+            return $this->respond('SUCCESS');
+        else
+            return $this->respond($accountsModel->db->error());
     }
 }

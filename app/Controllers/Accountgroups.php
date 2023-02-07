@@ -4,22 +4,12 @@ namespace App\Controllers;
 
 use App\Models\AccountGroupsModel;
 use CodeIgniter\I18n\Time;
-use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 
 
 class AccountGroups extends BaseController
 {
     use ResponseTrait;
-    public function __construct()
-    {
-        date_default_timezone_set('Asia/Kolkata');
-        if (isset($_SERVER['HTTP_ORIGIN'])) {
-            header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-            header('Access-Control-Allow-Credentials: true');
-            header('Access-Control-Max-Age: 86400');    // cache for 1 day
-        }
-    }
 
     public function index()
     {
@@ -34,7 +24,13 @@ class AccountGroups extends BaseController
         $filt = "";
         if (!empty($postdata->qry))
             $filt .= "AND (ag_name LIKE '%" . $postdata->qry . "%' OR ag_type LIKE '%" . $postdata->qry . "%')";
-        $data['accountgroups'] = $accountGroupsModel->getAccountGrp($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        $builder = $accountGroupsModel->builder()->select('*')
+            ->where('(1=1) ' . $filt);
+        $data['accountgroups'] = $builder
+            ->orderBy($postdata->sort)
+            ->limit($postdata->pn, $postdata->ps)->get()->getResult();
+        $data['records'] = $builder->countAllResults();
+
         return $this->respond($data);
     }
 
@@ -52,9 +48,13 @@ class AccountGroups extends BaseController
             'ag_client_id' => $json->ag_client_id,
             'ag_modified' => $today->toDateTimeString()
         ];
-        $accountGroupsModel->addAccountGrp($data);
-        echo 'SUCCESS';
+        $accountGroupsModel->builder()->insert($data);
+        if ($accountGroupsModel->db->affectedRows() > 0)
+            return $this->respond('SUCCESS');
+        else
+            return $this->respond($accountGroupsModel->db->error());
     }
+
     public function updateAccountGrp()
     {
         $post = $this->request->getPost('postdata');
@@ -69,15 +69,22 @@ class AccountGroups extends BaseController
             'ag_client_id' => $json->ag_client_id,
             'ag_modified' => $today->toDateTimeString()
         ];
-        $accountGroupsModel->updateAccountGrp($data);
-        echo 'SUCCESS';
+        $accountGroupsModel->builder()->where('ag_id', $json->ag_id)->update($data);
+        if ($accountGroupsModel->db->affectedRows() > 0)
+            return $this->respond('SUCCESS');
+        else
+            return $this->respond($accountGroupsModel->db->error());
     }
+
     public function deleteAccountGrp()
     {
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
         $accountGroupsModel = new AccountGroupsModel;
-        $accountGroupsModel->deleteAccountGrp($json->ag_id);
-        echo 'SUCCESS';
+        $accountGroupsModel->builder()->where('ag_id', $json->ag_id)->delete();
+        if ($accountGroupsModel->db->affectedRows() > 0)
+            return $this->respond('SUCCESS');
+        else
+            return $this->respond($accountGroupsModel->db->error());
     }
 }
