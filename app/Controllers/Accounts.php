@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Utility;
 use App\Models\AccountsModel;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
@@ -35,6 +36,70 @@ class Accounts extends BaseController
         return $this->respond($data);
     }
 
+    public function getAccountsCashBank()
+    {
+        $post = $this->request->getPost('postdata');
+        $postdata = json_decode($post);
+        $accountsModel = new AccountsModel();
+        $filt = "";
+
+        // CREATE DEFAULT ACCOUNTS
+        $utility = new Utility();
+        $account_id = "";
+        $today = new Time('now');
+
+        $accounts = $accountsModel->getAccountByName($postdata->cid, 'Cash Account');
+        if (sizeof($accounts) == 0) {
+            $account_id = $utility->guid();
+            $data = [
+                'acnt_id' => $account_id,
+                'acnt_name' => 'Cash Account',
+                'acnt_ag_id' => 'E4C13199-7492-0EFE-BC5C-41B82047623E',
+                'acnt_client_id' => $postdata->cid,
+                'acnt_opbal' => 0,
+                'acnt_clbal' => 0,
+                'acnt_inactive' => 0,
+                'acnt_isdefault' => 1,
+                'acnt_book_type' => 'CH',
+                'acnt_remarks' => 'Default',
+                'acnt_modified' => $today->toDateTimeString()
+            ];
+            $accountsModel->builder()->insert($data);
+        }
+        $accounts = $accountsModel->getAccountByName($postdata->cid, 'Bank Account');
+        if (sizeof($accounts) == 0) {
+            $account_id = $utility->guid();
+            $data = [
+                'acnt_id' => $account_id,
+                'acnt_name' => 'Bank Account',
+                'acnt_ag_id' => 'E4C13199-7492-0EFE-BC5C-41B82047623E',
+                'acnt_client_id' => $postdata->cid,
+                'acnt_opbal' => 0,
+                'acnt_clbal' => 0,
+                'acnt_inactive' => 0,
+                'acnt_isdefault' => 1,
+                'acnt_book_type' => 'BK',
+                'acnt_remarks' => 'Default',
+                'acnt_modified' => $today->toDateTimeString()
+            ];
+            $accountsModel->addAccount($data);
+        }
+        // END OF DEFAULT ACCOUNTS
+
+        if (isset($postdata->cid))
+            $filt .= " AND (acnt_client_id = '" . $postdata->cid . "')";
+        else {
+            return $this->failUnauthorized();
+        }
+        $filt .= " AND acnt_book_type IN ('CH', 'BK')";
+
+        $data['accounts'] = $accountsModel->builder()->select()
+            ->where('(1=1) ' . $filt)
+            ->orderBy($postdata->sort)
+            ->get()->getResult();
+        return $this->respond($data);
+    }
+
     public function addAccount()
     {
         $post = $this->request->getPost('postdata');
@@ -59,7 +124,7 @@ class Accounts extends BaseController
         else
             return $this->respond($accountsModel->db->error());
     }
-    
+
     public function updateAccount()
     {
         $post = $this->request->getPost('postdata');
