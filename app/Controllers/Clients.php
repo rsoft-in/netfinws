@@ -36,6 +36,7 @@ class Clients extends BaseController
             $filt .= "AND (client_name LIKE '%" . $postdata->qry . "%' OR client_address LIKE '%" . $postdata->qry . "%' OR client_email LIKE '%" . $postdata->qry . "%' OR client_mobile LIKE '%" . $postdata->qry . "%')";
 
         $data['clients'] = $clientsModel->getClients($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        $data['records'] = $clientsModel->getClientsByCount($filt);
         return $this->respond($data);
     }
 
@@ -85,6 +86,36 @@ class Clients extends BaseController
         $json = json_decode($post);
         $clientsModel = new ClientsModel;
         $clientsModel->deleteClient($json->client_id);
+        echo 'SUCCESS';
+    }
+
+    public function getClientById()
+    {
+        $post = $this->request->getPost('postdata');
+        $postdata = json_decode($post);
+        $clientsModel = new ClientsModel;
+        
+        if (!empty($postdata->cid))
+        $data['clients'] = $clientsModel->getClientById( $postdata->cid);
+        return $this->respond($data);
+    }
+
+    public function updateClientChange()
+    {
+        $post = $this->request->getPost('postdata');
+        $json = json_decode($post);
+        $today = new Time('now');
+        $clientsModel = new ClientsModel;
+        $data = [
+            'client_id' => $json->client_id,
+            'client_name' => $json->client_name,
+            'client_address' => $json->client_address,
+            'client_phone' => $json->client_phone,
+            'client_mobile' => $json->client_mobile, 
+            'client_email' => $json->client_email,
+            'client_modified' => $today->toDateTimeString()
+        ];
+        $clientsModel->updateClientChange($data);
         echo 'SUCCESS';
     }
 }

@@ -30,7 +30,7 @@ class Users extends BaseController
         $post = $this->request->getPost('postdata');
         $postdata = json_decode($post);
         $userModel = new UserModel();
-        
+
         $filt = "";
         if (empty($postdata->cid))
             return;
@@ -42,6 +42,7 @@ class Users extends BaseController
             $filt .= " AND (usr_name LIKE '%" . $postdata->qry . "%' OR usr_displayname LIKE '%" . $postdata->qry . "%' )";
 
         $data['users'] = $userModel->getUsers($filt, $postdata->sort, $postdata->pn, $postdata->ps);
+        $data['records'] = $userModel->builder()->where('(1=1) ' . $filt)->countAllResults();
         return $this->respond($data);
     }
 
