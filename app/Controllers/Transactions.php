@@ -24,6 +24,7 @@ class Transactions extends BaseController
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
         $transactionsModel = new TransactionsModel();
+        $accountsModel = new AccountsModel();
 
         $filt = "";
         if (!isset($json->cid)) {
@@ -35,6 +36,10 @@ class Transactions extends BaseController
             $filt .= " AND (txn_date <= '" . $json->tdate . "')";
 
         $data['transactions'] = $transactionsModel->getTransaction($json->acnt_id, $filt, $json->ps, $json->pn * $json->ps);
+        $data['op_balance'] = $accountsModel->builder()
+            ->select('acnt_opbal, accountgroups.ag_type')
+            ->join('accountgroups', 'accountgroups.ag_id = accounts.acnt_ag_id', 'inner')
+            ->where('acnt_id', $json->acnt_id)->get()->getResult();
         $data['records'] = $transactionsModel->getTransactionsCount($json->acnt_id, $filt);
         $data['op_totals'] = $transactionsModel->getOpeningTotals($json->acnt_id, $json->fdate);
         $data['cl_totals'] = $transactionsModel->getClosingTotals($json->acnt_id, $json->tdate);
