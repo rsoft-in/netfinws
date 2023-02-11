@@ -24,7 +24,11 @@ class Accounts extends BaseController
         $postdata = json_decode($post);
         $accountsModel = new AccountsModel();
 
+        if (!isset($postdata->cid))
+            return $this->failUnauthorized();
+
         $builder = $accountsModel->builder()->select('*');
+        $builder->where('acnt_client_id', $postdata->cid);
         if (!empty($postdata->qry)) {
             $builder->like('acnt_name', $postdata->qry);
         }

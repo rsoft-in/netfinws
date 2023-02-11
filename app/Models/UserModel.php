@@ -18,14 +18,30 @@ class UserModel extends Model
             ->get()->getResult();
         return $result;
     }
+
+    public function getUsersCount($filter)
+    {
+        $result = $this->builder()->select('users.*')
+            ->where('(1=1) ' . $filter)
+            ->countAllResults();
+        return $result;
+    }
+
     public function addUser($data)
     {
         $this->builder()->insert($data);
     }
+
     public function updateUser($data)
     {
         $this->builder()->where('usr_id', $data['usr_id'])->update($data);
     }
+
+    public function updatePassword($data)
+    {
+        $this->builder()->where('usr_name', $data['usr_name'])->update($data);
+    }
+
     public function deleteUser($usr_id)
     {
         $this->builder()->where('usr_id', $usr_id)->delete();

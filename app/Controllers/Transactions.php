@@ -13,15 +13,6 @@ use Utility as GlobalUtility;
 class Transactions extends BaseController
 {
     use ResponseTrait;
-    public function __construct()
-    {
-        date_default_timezone_set('Asia/Kolkata');
-        if (isset($_SERVER['HTTP_ORIGIN'])) {
-            header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-            header('Access-Control-Allow-Credentials: true');
-            header('Access-Control-Max-Age: 86400');    // cache for 1 day
-        }
-    }
 
     public function index()
     {
@@ -31,63 +22,22 @@ class Transactions extends BaseController
     public function getTransaction()
     {
         $post = $this->request->getPost('postdata');
-        $postdata = json_decode($post);
+        $json = json_decode($post);
         $transactionsModel = new TransactionsModel();
-        $accountsModel = new AccountsModel();
-        $utility = new Utility();
-        $account_name = "";
-        $account_id = "";
-        $group_id = "";
-        $today = new Time('now');
-        switch ($postdata->book) {
-            case 'CH':
-                $account_name = "Cash Account";
-                $group_id = "E4C13199-7492-0EFE-BC5C-41B82047623E";
-                break;
-            case 'BK':
-                $account_name = "Bank Account";
-                $group_id = "E4C13199-7492-0EFE-BC5C-41B82047623E";
-                break;
-            case 'SA':
-                $account_name = "Sales Account";
-                $group_id = "C1EF16E9-F3DA-69A0-9C29-E23A5E1A96A8";
-                break;
-            case 'PU':
-                $account_name = "Purchase Account";
-                $group_id = "8FB61DF9-9086-5DBD-BD33-3F3A4068829C";
-                break;
-            default:
-                $account_name = "Cash Account";
-                $group_id = "E4C13199-7492-0EFE-BC5C-41B82047623E";
-                break;
-        }
-
-        $accounts = $accountsModel->getAccountByName($postdata->cid, $account_name);
-        if (sizeof($accounts) > 0) {
-            $account = $accounts[0];
-            $account_id = $account->acnt_id;
-        } else {
-            $account_id = $utility->guid();
-            $data = [
-                'acnt_id' => $account_id,
-                'acnt_name' => $account_name,
-                'acnt_ag_id' => $group_id,
-                'acnt_client_id' => $postdata->cid,
-                'acnt_opbal' => 0,
-                'acnt_clbal' => 0,
-                'acnt_inactive' => 0,
-                'acnt_isdefault' => 1,
-                'acnt_remarks' => 'Default',
-                'acnt_modified' => $today->toDateTimeString()
-            ];
-            $accountsModel->addAccount($data);
-        }
 
         $filt = "";
-        if (!empty($postdata->qry))
-            $filt .= "AND (txn_date LIKE '%" . $postdata->qry . "%')";
-        $data['transactions'] = $transactionsModel->getTransaction($account_id, $filt, $postdata->sort, $postdata->pn, $postdata->ps);
-        var_dump($account_id);
+        if (!isset($json->cid)) {
+            return $this->respond('INVALID REQUEST');
+        }
+        if (!empty($json->fdate))
+            $filt .= " AND (txn_date >= '" . $json->fdate . "')";
+        if (!empty($json->tdate))
+            $filt .= " AND (txn_date <= '" . $json->tdate . "')";
+
+        $data['transactions'] = $transactionsModel->getTransaction($json->acnt_id, $filt, $json->ps, $json->pn * $json->ps);
+        $data['records'] = $transactionsModel->getTransactionsCount($json->acnt_id, $filt);
+        $data['op_totals'] = $transactionsModel->getOpeningTotals($json->acnt_id, $json->fdate);
+        $data['cl_totals'] = $transactionsModel->getClosingTotals($json->acnt_id, $json->tdate);
         return $this->respond($data);
     }
 
