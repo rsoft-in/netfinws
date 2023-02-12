@@ -15,7 +15,7 @@ class Accounts extends BaseController
 
     public function index()
     {
-        return view('unauthorized_access');
+        return $this->failUnauthorized();
     }
 
     public function getAccounts()

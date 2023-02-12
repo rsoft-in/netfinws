@@ -25,42 +25,62 @@
 
 namespace Kint\Parser;
 
-use InvalidArgumentException;
+use BackedEnum;
+use Kint\Zval\EnumValue;
+use Kint\Zval\Representation\Representation;
 use Kint\Zval\Value;
+use UnitEnum;
 
-class ProxyPlugin extends Plugin
+class EnumPlugin extends Plugin
 {
-    protected $types;
-    protected $triggers;
-    protected $callback;
-
-    public function __construct(array $types, $triggers, $callback)
-    {
-        if (!\is_int($triggers)) {
-            throw new InvalidArgumentException('ProxyPlugin triggers must be an int bitmask');
-        }
-
-        if (!\is_callable($callback)) {
-            throw new InvalidArgumentException('ProxyPlugin callback must be callable');
-        }
-
-        $this->types = $types;
-        $this->triggers = $triggers;
-        $this->callback = $callback;
-    }
+    private static $cache = [];
 
     public function getTypes()
     {
-        return $this->types;
+        return ['object'];
     }
 
     public function getTriggers()
     {
-        return $this->triggers;
+        if (!KINT_PHP81) {
+            return Parser::TRIGGER_NONE;
+        }
+
+        return Parser::TRIGGER_SUCCESS;
     }
 
     public function parse(&$var, Value &$o, $trigger)
     {
-        return \call_user_func_array($this->callback, [&$var, &$o, $trigger, $this->parser]);
+        if (!$var instanceof UnitEnum) {
+            return;
+        }
+
+        $class = \get_class($var);
+
+        if (!isset(self::$cache[$class])) {
+            $cases = new Representation('Enum values', 'enum');
+            $cases->contents = [];
+
+            foreach ($var->cases() as $case) {
+                $base_obj = Value::blank($class.'::'.$case->name, '\\'.$class.'::'.$case->name);
+                $base_obj->depth = $o->depth + 1;
+
+                if ($var instanceof BackedEnum) {
+                    $c = $case->value;
+                    $cases->contents[] = $this->parser->parse($c, $base_obj);
+                } else {
+                    $cases->contents[] = $base_obj;
+                }
+            }
+
+            self::$cache[$class] = $cases;
+        }
+
+        $object = new EnumValue($var);
+        $object->transplant($o);
+
+        $object->addRepresentation(self::$cache[$class], 0);
+
+        $o = $object;
     }
 }

@@ -23,7 +23,7 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $baseURL = 'http://192.168.0.2/netfinws/';
+    public $baseURL = 'http://192.168.29.42/netfinws/';
 
     /**
      * --------------------------------------------------------------------------

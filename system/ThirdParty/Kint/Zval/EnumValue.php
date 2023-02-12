@@ -23,44 +23,40 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Kint\Parser;
+namespace Kint\Zval;
 
-use InvalidArgumentException;
-use Kint\Zval\Value;
+use BackedEnum;
+use UnitEnum;
 
-class ProxyPlugin extends Plugin
+class EnumValue extends InstanceValue
 {
-    protected $types;
-    protected $triggers;
-    protected $callback;
+    public $enumval;
 
-    public function __construct(array $types, $triggers, $callback)
+    public $hints = ['object', 'enum'];
+
+    public function __construct(UnitEnum $enumval)
     {
-        if (!\is_int($triggers)) {
-            throw new InvalidArgumentException('ProxyPlugin triggers must be an int bitmask');
+        $this->enumval = $enumval;
+    }
+
+    public function getValueShort()
+    {
+        if ($this->enumval instanceof BackedEnum) {
+            if (\is_string($this->enumval->value)) {
+                return '"'.$this->enumval->value.'"';
+            }
+            if (\is_int($this->enumval->value)) {
+                return (string) $this->enumval->value;
+            }
         }
-
-        if (!\is_callable($callback)) {
-            throw new InvalidArgumentException('ProxyPlugin callback must be callable');
-        }
-
-        $this->types = $types;
-        $this->triggers = $triggers;
-        $this->callback = $callback;
     }
 
-    public function getTypes()
+    public function getType()
     {
-        return $this->types;
+        return $this->classname.'::'.$this->enumval->name;
     }
 
-    public function getTriggers()
+    public function getSize()
     {
-        return $this->triggers;
-    }
-
-    public function parse(&$var, Value &$o, $trigger)
-    {
-        return \call_user_func_array($this->callback, [&$var, &$o, $trigger, $this->parser]);
     }
 }
