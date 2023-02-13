@@ -4,11 +4,8 @@ namespace App\Controllers;
 
 use App\Models\AccountsModel;
 use App\Models\TransactionsModel;
-use App\Libraries\Utility;
 use CodeIgniter\I18n\Time;
-use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
-use Utility as GlobalUtility;
 use TCPDF;
 
 class Transactions extends BaseController
@@ -128,7 +125,7 @@ class Transactions extends BaseController
         if (!empty($json->tdate))
             $filter .= " AND (txn_date <= '" . $json->tdate . "')";
 
-        $data['transactions'] = $transactionsModel->getTransaction($json->acnt_id, $filter, $json->ps, $json->pn * $json->ps);
+        $data['transactions'] = $transactionsModel->getTransaction($json->acnt_id, $filter, null, 0);
         $data['account'] = $accountsModel->builder()
             ->select('acnt_name, acnt_opbal, accountgroups.ag_type')
             ->join('accountgroups', 'accountgroups.ag_id = accounts.acnt_ag_id', 'inner')
@@ -142,8 +139,16 @@ class Transactions extends BaseController
         );
         $pdf = new TCPDF('P', 'mm', $pagelayout, true, 'UTF-8', false);
         $pdf->SetMargins(10, PDF_MARGIN_TOP, 10, true);
-        $pdf->SetHeaderData('', 0, 'Ledger of ' . $data['account'][0]->acnt_name, $json->fdate . ' to ' . $json->tdate);
-        $pdf->setHeaderFont(['helvetica', '', 14]);
+        $pdf->SetHeaderData(
+            '',
+            0,
+            'Ledger of ' . $data['account'][0]->acnt_name,
+            Time::parse($json->fdate)->toLocalizedString('dd.MM.yyyy') . ' to ' . Time::parse($json->tdate)->toLocalizedString('dd.MM.yyyy'),
+            array(0, 0, 0),
+            array(255, 255, 255)
+        );
+        $pdf->setHeaderFont(['helvetica', '', 12]);
+        $pdf->setFooterFont(['helvetica', '', 10]);
         $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
         $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
         $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
@@ -161,20 +166,37 @@ class Transactions extends BaseController
                 </tr>
             </thead>
         </tbody>";
+        $ledger = strtolower(str_replace(' ', '_', $data['account'][0]->acnt_name));
+        $type = $data['account'][0]->ag_type;
         $totalDebit = 0;
         $totalCredit = 0;
+        $openingBalance = $data['account'][0]->acnt_opbal + $data['op_totals'][0]->sum_amount_dr - $data['op_totals'][0]->sum_amount_cr;
+        if ($type == 'BL' || $type == 'BA') {
+            $tbl .= "<tr>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">" . Time::parse($json->fdate)->toLocalizedString('dd.MM.yyyy') . "</td>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">&nbsp;</td>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\"  width=\"205\">Opening Balance</td>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\">" . ($openingBalance > 0 ? number_format($openingBalance, 2) : "&nbsp;") . "</td>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\">" . ($openingBalance < 0 ? number_format(-$openingBalance, 2) : "&nbsp;") . "</td>";
+            $tbl .= "</tr>";
+            if ($openingBalance > 0) {
+                $totalDebit += $openingBalance;
+            } else {
+                $totalCredit += - ($openingBalance);
+            }
+        }
         foreach ($data['transactions'] as $transaction) {
             $tbl .= "<tr>";
-            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">" . Time::parse($transaction->txn_date)->toLocalizedString('dd-MM-yyyy') . "</td>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">" . Time::parse($transaction->txn_date)->toLocalizedString('dd.MM.yyyy') . "</td>";
             $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">" . $transaction->txn_ref_nr . "</td>";
             $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\"  width=\"205\">" . ($json->acnt_id == $transaction->txn_acnt_id_dr ? $transaction->acnt_name_cr : $transaction->acnt_name_dr) . "<br><span style=\"color: #666;\"><i>" . $transaction->txn_remarks . "</i></span></td>";
+            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\">" . ($json->acnt_id == $transaction->txn_acnt_id_dr ?  number_format($transaction->txn_amount, 2) : '&nbsp;') . "</td>";
             $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\">" . ($json->acnt_id == $transaction->txn_acnt_id_dr ? '&nbsp;' : number_format($transaction->txn_amount, 2)) . "</td>";
-            $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\">" . ($json->acnt_id == $transaction->txn_acnt_id_dr ? number_format($transaction->txn_amount, 2) : '&nbsp;') . "</td>";
             $tbl .= "</tr>";
             if ($json->acnt_id == $transaction->txn_acnt_id_dr) {
-                $totalCredit += $transaction->txn_amount;
-            } else {
                 $totalDebit += $transaction->txn_amount;
+            } else {
+                $totalCredit += $transaction->txn_amount;
             }
         }
         $tbl .= "<tr>";
@@ -184,10 +206,18 @@ class Transactions extends BaseController
         $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\"><strong>" . number_format($totalDebit, 2) . "</strong></td>";
         $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\"><strong>" . number_format($totalCredit, 2) . "</strong></td>";
         $tbl .= "</tr>";
+        $closingBalance = $totalDebit - $totalCredit;
+        $tbl .= "<tr>";
+        $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">&nbsp;</td>";
+        $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\" width=\"55\">&nbsp;</td>";
+        $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc;\"  width=\"205\">&nbsp;</td>";
+        $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\"><strong>" . ($closingBalance > 0 ? number_format($closingBalance, 2) : "&nbsp;") . "</strong></td>";
+        $tbl .= "<td style=\"border-bottom: 0.5px solid #ccc; text-align: right;\" width=\"113\"><strong>" . ($closingBalance < 0 ? number_format(-$closingBalance, 2) : "&nbsp;") . "</strong></td>";
+        $tbl .= "</tr>";
         $tbl .= "</tbody></table>";
 
         $pdf->writeHTML($tbl, true, false, false, false, '');
         $this->response->setHeader("Content-Type", "application/pdf");
-        $pdf->Output("report.pdf", 'I');
+        $pdf->Output($ledger . ".pdf", 'I');
     }
 }
