@@ -28,7 +28,7 @@ class AccountGroups extends BaseController
             ->where('(1=1) ' . $filt);
         $data['accountgroups'] = $builder
             ->orderBy($postdata->sort)
-            ->limit($postdata->pn, $postdata->ps)->get()->getResult();
+            ->limit($postdata->pn, $postdata->pn * $postdata->ps)->get()->getResult();
         $data['records'] = $builder->countAllResults();
 
         return $this->respond($data);

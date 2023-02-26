@@ -34,7 +34,7 @@ class Accounts extends BaseController
         }
         $data['accounts'] = $builder
             ->orderBy($postdata->sort)
-            ->limit($postdata->pn, $postdata->ps)
+            ->limit($postdata->pn, $postdata->pn * $postdata->ps)
             ->get()->getResult();
         $data['records'] = $builder->countAllResults();
         return $this->respond($data);
