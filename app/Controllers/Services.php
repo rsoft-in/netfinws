@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Encrypter;
 use App\Models\UserModel;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
@@ -38,6 +39,8 @@ class Services extends BaseController
         $post = $this->request->getPost('postdata');
         $postdata = json_decode($post);
         $today = new Time('now');
+        $encrypter = new Encrypter();
+
         if ($postdata->username == 'super-admin' && $postdata->password == 'Elia1092') {
             $dataArray = array(
                 'usr_id' => $postdata->username,
@@ -56,18 +59,22 @@ class Services extends BaseController
             $users = $userModel->getUserByUsername($postdata->username);
             if (sizeof($users) > 0) {
                 $user = $users[0];
-                $dataArray = array(
-                    'usr_id' => $user->usr_id,
-                    'usr_client_id' => $user->usr_client_id,
-                    'usr_name' => $user->usr_name,
-                    'usr_pwd' => $user->usr_pwd,
-                    'usr_displayname' => $user->usr_displayname,
-                    'usr_level' => '0',
-                    'usr_remarks' => $user->usr_remarks,
-                    'usr_modified' => $today->toDateTimeString(),
-                    'usr_inactive' => $user->usr_inactive
-                );
-                echo json_encode($dataArray);
+                if ($encrypter->decrypt($user->usr_pwd) == $postdata->password) {
+                    $dataArray = array(
+                        'usr_id' => $user->usr_id,
+                        'usr_client_id' => $user->usr_client_id,
+                        'usr_name' => $user->usr_name,
+                        'usr_pwd' => $user->usr_pwd,
+                        'usr_displayname' => $user->usr_displayname,
+                        'usr_level' => '0',
+                        'usr_remarks' => $user->usr_remarks,
+                        'usr_modified' => $today->toDateTimeString(),
+                        'usr_inactive' => $user->usr_inactive
+                    );
+                    echo json_encode($dataArray);
+                } else {
+                    return $this->failUnauthorized('Invalid password');
+                }
             } else {
                 echo 'FAILED: INCORRECT USERNAME';
             }

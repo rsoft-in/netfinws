@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Encrypter;
 use App\Models\UserModel;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\RESTful\ResourceController;
@@ -28,7 +29,6 @@ class Users extends BaseController
         else
             $filt .= " AND (usr_client_id = '" . $postdata->cid . "')";
 
-
         if (!empty($postdata->qry))
             $filt .= " AND (usr_name LIKE '%" . $postdata->qry . "%' OR usr_displayname LIKE '%" . $postdata->qry . "%' )";
 
@@ -42,12 +42,13 @@ class Users extends BaseController
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
         $today = new Time('now');
+        $encrypter = new Encrypter();
         $userModel = new UserModel();
         $data = [
             'usr_id' => $json->usr_id,
             'usr_client_id' => $json->usr_client_id,
             'usr_name' => $json->usr_name,
-            'usr_pwd' => $json->usr_pwd,
+            'usr_pwd' => $encrypter->encrypt($json->usr_pwd),
             'usr_displayname' => $json->usr_displayname,
             'usr_level' => $json->usr_level,
             'usr_remarks' => $json->usr_remarks,
@@ -57,17 +58,19 @@ class Users extends BaseController
         $userModel->addUser($data);
         echo 'SUCCESS';
     }
+
     public function updateUser()
     {
         $post = $this->request->getPost('postdata');
         $json = json_decode($post);
         $today = new Time('now');
+        $encrypter = new Encrypter();
         $userModel = new UserModel;
         $data = [
             'usr_id' => $json->usr_id,
             'usr_client_id' => $json->usr_client_id,
             'usr_name' => $json->usr_name,
-            'usr_pwd' => $json->usr_pwd,
+            'usr_pwd' => $encrypter->encrypt($json->usr_pwd),
             'usr_displayname' => $json->usr_displayname,
             'usr_level' => $json->usr_level,
             'usr_remarks' => $json->usr_remarks,
@@ -77,6 +80,7 @@ class Users extends BaseController
         $userModel->updateUser($data);
         echo 'SUCCESS';
     }
+
     public function deleteUser()
     {
         $post = $this->request->getPost('postdata');
