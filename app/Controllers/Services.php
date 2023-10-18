@@ -64,7 +64,7 @@ class Services extends BaseController
                         'usr_id' => $user->usr_id,
                         'usr_client_id' => $user->usr_client_id,
                         'usr_name' => $user->usr_name,
-                        'usr_pwd' => $user->usr_pwd,
+                        'usr_pwd' => $encrypter->decrypt($user->usr_pwd),
                         'usr_displayname' => $user->usr_displayname,
                         'usr_level' => '0',
                         'usr_remarks' => $user->usr_remarks,
